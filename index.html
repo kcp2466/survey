@@ -1,1 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Comprehension Check</title>
+<style>
+  :root{
+    --paper:#FAF8F3;
+    --ink:#1F2A2E;
+    --ink-soft:#5C6B6E;
+    --line:#DAD4C6;
+    --focus:#2C6E63;
+    --focus-soft:#E4EFEC;
+    --warn:#B4472A;
+    --warn-soft:#F7E7E1;
+    --card:#FFFFFF;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:var(--paper);
+    color:var(--ink);
+    font-family: "Iowan Old Style","Georgia",serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px 16px;
+  }
+  .ui, button, input{
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  .frame{
+    width:100%;
+    max-width:680px;
+  }
+  .rail{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:22px;
+    font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+  }
+  .rail-label{
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-right:6px;
+    white-space:nowrap;
+  }
+  .dot{
+    width:9px;height:9px;border-radius:50%;
+    background:var(--line);
+    transition:background .25s ease, transform .25s ease;
+  }
+  .dot.done{background:var(--focus);}
+  .dot.current{background:var(--focus); transform:scale(1.35);}
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:40px 40px 32px;
+    box-shadow:0 1px 2px rgba(31,42,46,.04);
+  }
+  .eyebrow{
+    font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-size:11px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--focus);
+    font-weight:600;
+    margin:0 0 10px;
+  }
+  h1{
+    font-size:26px;
+    line-height:1.25;
+    margin:0 0 14px;
+    font-weight:600;
+  }
+  h2{
+    font-size:20px;
+    line-height:1.35;
+    margin:0 0 22px;
+    font-weight:600;
+  }
+  p{ line-height:1.7; font-size:16.5px; color:var(--ink); }
+  .passage{
+    white-space:pre-line;
+    font-size:17px;
+    line-height:1.85;
+  }
+  .meta{
+    font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-size:13px;
+    color:var(--ink-soft);
+    margin:0 0 4px;
+  }
+  .options{ display:flex; flex-direction:column; gap:10px; margin:6px 0 8px; }
+  .option{
+    font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+    display:flex; align-items:flex-start; gap:12px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:13px 16px;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+    font-size:15px;
+    line-height:1.5;
+  }
+  .option:hover{ border-color:var(--focus); background:var(--focus-soft); }
+  .option.selected{ border-color:var(--focus); background:var(--focus-soft); }
+  .option input{ margin-top:3px; accent-color:var(--focus); }
+  .btn{
+    font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+    appearance:none;
+    border:none;
+    background:var(--focus);
+    color:#fff;
+    font-size:14.5px;
+    font-weight:600;
+    padding:13px 26px;
+    border-radius:7px;
+    cursor:pointer;
+    letter-spacing:.01em;
+    transition:opacity .15s ease, transform .1s ease;
+  }
+  .btn:hover{ opacity:.92; }
+  .btn:active{ transform:translateY(1px); }
+  .btn:disabled{ background:#B9C4C2; cursor:not-allowed; }
+  .btn-row{ margin-top:26px; display:flex; justify-content:flex-end; }
+  .notice{
+    font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-size:13.5px;
+    color:var(--ink-soft);
+    background:var(--focus-soft);
+    border:1px solid var(--line);
+    border-radius:7px;
+    padding:12px 14px;
+    margin-top:18px;
+    line-height:1.5;
+  }
+  .screen{ display:none; }
+  .screen.active{ display:block; }
+  .center{ text-align:center; }
+  .warn-card{ border-color:var(--warn); }
+  .warn-icon{ font-size:32px; margin-bottom:10px; }
+  .warn-title{ color:var(--warn); }
+  .warn-box{
+    font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+    background:var(--warn-soft);
+    border:1px solid var(--warn);
+    color:#7A3018;
+    border-radius:7px;
+    padding:12px 14px;
+    font-size:13.5px;
+    line-height:1.6;
+    margin-bottom:22px;
+    text-align:left;
+  }
+  .thanks-icon{
+    width:52px;height:52px;border-radius:50%;
+    background:var(--focus);
+    color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:26px;
+    margin:0 auto 18px;
+  }
+  .admin-link{
+    font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+    display:block;
+    text-align:center;
+    margin-top:18px;
+    font-size:12px;
+    color:var(--ink-soft);
+    text-decoration:none;
+    opacity:.55;
+  }
+  .admin-link:hover{ opacity:1; }
+  table{ width:100%; border-collapse:collapse; font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif; font-size:13.5px; }
+  th,td{ text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{ font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); }
+  .score-pill{
+    display:inline-block; padding:2px 8px; border-radius:12px;
+    background:var(--focus-soft); color:var(--focus); font-weight:600; font-size:12.5px;
+  }
+  .empty{ color:var(--ink-soft); font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif; font-size:14px; padding:20px 0; }
+  input[type="password"]{
+    width:100%; padding:11px 13px; border:1px solid var(--line); border-radius:7px;
+    font-size:15px; margin-bottom:14px;
+  }
+</style>
+</head>
+<body>
 
+<div class="frame">
+
+  <div class="rail ui" id="rail" style="display:none;">
+    <span class="rail-label">Progress</span>
+    <div class="dot" data-q="1"></div>
+    <div class="dot" data-q="2"></div>
+    <div class="dot" data-q="3"></div>
+    <div class="dot" data-q="4"></div>
+    <div class="dot" data-q="5"></div>
+  </div>
+
+  <!-- LANDING -->
+  <div class="screen active" id="screen-landing">
+    <div class="card">
+      <p class="eyebrow">Reading check</p>
+      <h1>Before you begin</h1>
+      <p>You'll read a short passage, then answer 5 questions about it. A few rules:</p>
+      <p style="margin-top:10px;">
+        • You can only move forward — there's no way to revisit a previous screen.<br>
+        • Stay on this tab for the whole test. Switching tabs, apps, or windows resets the test back to the start.<br>
+        • Your answers are submitted automatically when you finish. You won't see your score — just a confirmation that you're done.
+      </p>
+      <div class="btn-row">
+        <button class="btn" onclick="beginTest()">Begin the test</button>
+      </div>
+    </div>
+    <a href="#" class="admin-link" id="admin-link" target="_blank" rel="noopener">View results (opens your Google Sheet)</a>
+  </div>
+
+  <!-- PASSAGE -->
+  <div class="screen" id="screen-passage">
+    <div class="card">
+      <p class="eyebrow">Passage</p>
+      <h2 id="passage-title"></h2>
+      <p class="passage" id="passage-text"></p>
+      <div class="notice">Read carefully — once you continue, you won't be able to come back to this passage.</div>
+      <div class="btn-row">
+        <button class="btn" onclick="goToQuestion(1)">Continue to questions</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUESTIONS 1-5 -->
+  <div class="screen" id="screen-q1"></div>
+  <div class="screen" id="screen-q2"></div>
+  <div class="screen" id="screen-q3"></div>
+  <div class="screen" id="screen-q4"></div>
+  <div class="screen" id="screen-q5"></div>
+
+  <!-- RESET / VIOLATION -->
+  <div class="screen" id="screen-reset">
+    <div class="card warn-card center">
+      <div class="warn-icon">⚠️</div>
+      <h1 class="warn-title">Test reset</h1>
+      <p>We noticed you left this tab or window while the test was in progress. To keep the test fair, your progress has been cleared and you'll need to start over.</p>
+      <div class="btn-row" style="justify-content:center; margin-top:22px;">
+        <button class="btn" onclick="goTo('landing')">Start over</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- THANK YOU -->
+  <div class="screen" id="screen-thanks">
+    <div class="card center">
+      <div class="thanks-icon">✓</div>
+      <h1>Thanks — you're all done</h1>
+      <p>Your responses have been recorded. There's nothing else you need to do.</p>
+      <p style="margin-top:6px; color:var(--ink-soft); font-size:14.5px;">You may close this window.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ---------------------------------------------------------
+   CONTENT — edit the passage, questions, and correct answers here
+--------------------------------------------------------- */
+const PASSAGE_TITLE = "Light With No Heat: Bioluminescence in the Deep Sea";
+const PASSAGE_TEXT = `Below about a thousand meters, sunlight never reaches the ocean, yet the water there is far from dark. Scientists estimate that most animals living in this zone can produce their own light, a trait called bioluminescence. The light comes from a chemical reaction inside or on the surface of the animal's body, where a molecule called luciferin reacts with oxygen, releasing energy as a soft glow rather than heat. Unlike a lightbulb, which wastes most of its energy warming the air around it, this reaction converts nearly all of its energy directly into light.
+
+Animals use this ability for very different reasons. Some, like the anglerfish, dangle a glowing lure to draw curious prey close enough to strike. Others use light defensively: certain squid release a glowing cloud instead of ink, confusing a predator long enough to escape, while some small crustaceans eject bursts of glowing chemicals to startle an attacker and slip away in the confusion. Still other species use light to find each other in open water, flashing patterns unique enough that members of the same species can recognize one another from a distance, much like a signal flare.
+
+Perhaps the strangest use is camouflage. A number of mid-water fish and squid produce a faint glow on their undersides that matches the dim light filtering down from the surface. Seen from below, a predator looking upward would normally spot a dark silhouette against the brighter water above; the glow erases that silhouette, letting the animal blend into the light rather than hide in the dark. Researchers who study this phenomenon, known as counter-illumination, have found that some species can even adjust the brightness of their glow to match changing conditions overhead.`;
+
+const QUESTIONS = [
+  {
+    q: "According to the passage, what actually produces bioluminescent light?",
+    options: [
+      "Reflected sunlight stored during the day",
+      "A chemical reaction between luciferin and oxygen",
+      "Bacteria that heat the animal's skin",
+      "Electrical signals in the animal's nervous system"
+    ],
+    correct: 1
+  },
+  {
+    q: "How does the passage say bioluminescent light compares to a lightbulb?",
+    options: [
+      "It is dimmer but lasts much longer",
+      "It converts nearly all its energy into light instead of wasting it as heat",
+      "It requires an external power source, unlike a lightbulb",
+      "It only works in freezing water temperatures"
+    ],
+    correct: 1
+  },
+  {
+    q: "Why does the passage say some squid release a glowing cloud?",
+    options: [
+      "To attract a mate from far away",
+      "To mark territory against other squid",
+      "To confuse a predator long enough to escape",
+      "To help them see prey in the dark"
+    ],
+    correct: 2
+  },
+  {
+    q: "What is the anglerfish's glowing lure used for, per the passage?",
+    options: [
+      "Warning other anglerfish of danger",
+      "Communicating with members of its own species",
+      "Drawing curious prey close enough to strike",
+      "Blending into light from above"
+    ],
+    correct: 2
+  },
+  {
+    q: "What is 'counter-illumination,' as explained in the passage?",
+    options: [
+      "A defensive burst of light used to startle predators",
+      "A glow on an animal's underside that matches light from above, erasing its silhouette",
+      "A flashing pattern used to signal other members of the same species",
+      "The process by which luciferin is produced in the body"
+    ],
+    correct: 1
+  }
+];
+
+// PASTE the Apps Script Web App URL you get in Step 1 below (ends in /exec)
+const SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwVzd6mhAbHX4WtFio-6a0YZE4DYzeCmU8xJdHSJ9AbCi0lfa72LgcmoCNxxP7Kij5_ew/exec";
+
+// PASTE the normal browser link to your Google Sheet (the one you use to open it yourself)
+const SHEET_VIEW_URL = "https://docs.google.com/spreadsheets/d/1w9ZQ1kqxic0l1nAcd2bBY_SKcZCfjWDekLT_a3zJvyk/edit?gid=0#gid=0";
+
+document.getElementById('admin-link').href = SHEET_VIEW_URL;
+
+/* ---------------------------------------------------------
+   STATE
+--------------------------------------------------------- */
+let answers = {};       // { 1: optionIndex, ... }
+let testActive = false; // true while participant is between passage and submission
+let currentQ = 0;
+
+document.getElementById('passage-title').textContent = PASSAGE_TITLE;
+document.getElementById('passage-text').textContent = PASSAGE_TEXT;
+
+/* ---------------------------------------------------------
+   NAVIGATION / SCREEN HANDLING
+--------------------------------------------------------- */
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  document.getElementById('rail').style.display =
+    (id.startsWith('q')) ? 'flex' : 'none';
+  pushHistoryGuard();
+}
+
+function beginTest(){
+  answers = {};
+  currentQ = 0;
+  testActive = true;
+  buildQuestionScreens();
+  goTo('passage');
+}
+
+function buildQuestionScreens(){
+  QUESTIONS.forEach((item, idx) => {
+    const n = idx + 1;
+    const el = document.getElementById('screen-q' + n);
+    const optionsHtml = item.options.map((opt, oi) => `
+      <label class="option" id="opt-${n}-${oi}" onclick="selectOption(${n}, ${oi})">
+        <input type="radio" name="q${n}" value="${oi}" ${answers[n]===oi ? 'checked' : ''}>
+        <span>${opt}</span>
+      </label>
+    `).join('');
+
+    el.innerHTML = `
+      <div class="card">
+        <p class="meta">Question ${n} of ${QUESTIONS.length}</p>
+        <h2>${item.q}</h2>
+        <div class="options">${optionsHtml}</div>
+        <div class="btn-row">
+          <button class="btn" id="next-${n}" onclick="nextQuestion(${n})" ${answers[n]===undefined?'disabled':''}>
+            ${n === QUESTIONS.length ? 'Submit answers' : 'Next question'}
+          </button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+function selectOption(n, oi){
+  answers[n] = oi;
+  for(let i=0;i<QUESTIONS[n-1].options.length;i++){
+    document.getElementById(`opt-${n}-${i}`).classList.toggle('selected', i===oi);
+  }
+  document.getElementById(`next-${n}`).disabled = false;
+}
+
+function updateRail(n){
+  document.querySelectorAll('.dot').forEach(d => {
+    const dq = parseInt(d.dataset.q, 10);
+    d.classList.toggle('done', dq < n);
+    d.classList.toggle('current', dq === n);
+  });
+}
+
+function goToQuestion(n){
+  currentQ = n;
+  updateRail(n);
+  goTo('q' + n);
+}
+
+function nextQuestion(n){
+  if(answers[n] === undefined) return;
+  if(n < QUESTIONS.length){
+    goToQuestion(n + 1);
+  } else {
+    submitTest();
+  }
+}
+
+function submitTest(){
+  testActive = false;
+
+  let correctCount = 0;
+  const answerRows = QUESTIONS.map((item, idx) => {
+    const n = idx + 1;
+    const given = answers[n];
+    const isCorrect = given === item.correct;
+    if(isCorrect) correctCount++;
+    return {
+      question: item.q,
+      selected: given === undefined ? '(no answer)' : item.options[given],
+      correct: isCorrect
+    };
+  });
+
+  const record = {
+    submittedAt: new Date().toISOString(),
+    score: `${correctCount}/${QUESTIONS.length}`,
+    answers: answerRows
+  };
+
+  // Fire the save in the background — don't make the participant wait on it.
+  fetch(SHEET_WEBHOOK_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(record)
+  }).catch(e => console.error('Could not save results:', e));
+
+  goTo('thanks');
+}
+
+/* ---------------------------------------------------------
+   ANTI-CHEATING: block back button, reset on tab switch
+--------------------------------------------------------- */
+function pushHistoryGuard(){
+  history.pushState({guard:true}, '', location.href);
+}
+window.addEventListener('popstate', function(){
+  pushHistoryGuard();
+});
+pushHistoryGuard();
+
+document.addEventListener('visibilitychange', function(){
+  if(document.hidden && testActive){
+    resetTest();
+  }
+});
+window.addEventListener('blur', function(){
+  if(testActive){
+    resetTest();
+  }
+});
+
+function resetTest(){
+  testActive = false;
+  answers = {};
+  currentQ = 0;
+  goTo('reset');
+}
+
+</script>
+</body>
+</html>
